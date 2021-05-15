@@ -68,4 +68,6 @@ private:
     bool delete_file; // 是否删除文件
 };
 
+class Data;
+
 #endif
