@@ -2,11 +2,12 @@
 #include "timer.h"
 #include <string>
 #include <iostream>
+#include "convex_hull_solver.h"
 
 using std::string;
 
 int main() {
-    for (int _i = 1; _i < 11; ++ _i) {
+    for (int _i = 1; _i < 2; ++ _i) {
         // generator pointer set
         int i = _i * 1000;
         string if_name = "./data/" + string("points_") + std::to_string(i) +".txt";
@@ -18,11 +19,23 @@ int main() {
         } 
 
 
+        ConvexHullSolver solver(data);
         // 凸包求解器求解问题
         Timer timer;
         timer.Start();
-
+        solver.SolverBasedEnum();
         timer.End();
+        timer.Show();
+
+        solver.SaveConvexHullSet(solver.GetStoreFileName() + "_by_enum");
+
+        // 凸包求解器求解问题
+        timer.Start();
+        solver.SolverBasedGrahamScan();
+        timer.End();
+        timer.Show();
+
+        solver.SaveConvexHullSet(solver.GetStoreFileName() + "_by_grahamscan");
     }
 
 

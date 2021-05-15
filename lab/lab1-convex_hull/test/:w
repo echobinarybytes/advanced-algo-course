@@ -1,0 +1,21 @@
+#include <cmath>
+#include <iostream>
+
+using std::cout;
+using std::endl;
+
+static const double PI = 3.141592653;
+void Atan2Test() {
+    double x0 = 0, y0 = 0; // (0, 0)
+    double x1 = 0, y1 = 1; // (0, 1)
+    std::cout << atan2(y1 - y0, x1 - x0)*180/PI << std::endl;
+    std::cout << atan2(y0 - y1, x0 - x1)*180/PI << std::endl;
+
+    double x1 = 1, y1 = 1; // (0, 1)
+    std::cout << atan2(y1 - y0, x1 - x0)*180/PI << std::endl;
+
+}
+
+int main() {
+    Atan2Test();
+}

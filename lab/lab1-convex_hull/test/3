@@ -1,0 +1,103 @@
+#include <algorithm>
+#include <iostream>
+
+template<typename T>
+class Point {
+public:
+    // Point();
+    Point(T x, T y) : _x(x), _y(y) {}
+    Point(Point& p) = delete;
+    ~Point() {  }
+
+public:
+    // return x value
+    T GetX() { return _x; }
+    // return y value
+    T GetY() { return _y; }
+
+private:
+    T _x;
+    T _y;
+};
+
+template<typename T>
+class Triangle{
+public:
+    // 设置点的(x, y)坐标
+    Triangle(T x1, T y1,
+             T x2, T y2,
+             T x3, T y3) : A(x1, y1), B(x2, y2), C(x3, y3) {  } 
+    Triangle(Triangle& t) = delete;
+    ~Triangle() {  }
+
+public:
+    //获取A, B, C
+    Point<T> GetPointA() { return A; }
+    Point<T> GetPointB() { return B; }
+    Point<T> GetPointC() { return C; }
+private:
+    Point<T> A;
+    Point<T> B;
+    Point<T> C;
+};
+
+template<typename T>
+class Vec {
+public:
+    Vec(Point<T>& O, Point<T>& P) : vec(P.GetX() - O.GetX(), P.GetY() - P.GetY()) {  }
+    Vec(Vec& v) = delete;
+    ~Vec() {  }
+
+public:
+    // 重载*，表示叉乘 vec*op
+    T operator*(Vec& op) {
+        return vec.GetX()*op.GetY() - vec.GetY()*op.GetX();
+    } 
+
+private:
+    Point<T> vec;
+};
+
+// 使用
+template<typename T>
+bool PointInTriangle(Triangle<T>& tri, Point<T>& p) {
+
+    // 获得向量AB, AP
+    Vec<T> AB(std::move(tri.GetPointA()), std::move(tri.GetPointB()));
+    Vec<T> AP(tri.GetPointA(), p);
+    // 计算叉乘
+    T res1 = AB * AP;
+
+    // 获得向量BC, BP
+    Vec<T> BC(tri.GetPointB(), tri.GetPointC());
+    Vec<T> BP(tri.GetPointB(), p);
+    // 计算叉乘
+    T res2 = BC * BP;
+
+    // 获得向量CA, CP
+    Vec<T> CA(tri.GetPointC(), tri.GetPointA());
+    Vec<T> CP(tri.GetPointC(), p);
+    // 计算叉乘
+    T res3 = CA * CP;
+
+
+    if ( (res1 < 0 && res2 < 0 && res3 < 0) || 
+         (res1 > 0 && res2 > 0 && res3 > 0)) return true;
+
+    return false;
+}
+
+
+int main() {
+    Triangle<int>    t(0, 0,
+                       4, 0,
+                       3, -4); 
+    Point<int> p(4, 0);
+
+    if (PointInTriangle(t, p)) {
+        std::cout << "point in triangle" << std::endl;
+    } else {
+        std::cout << "point not in triangle" << std::endl;
+    }
+
+}
