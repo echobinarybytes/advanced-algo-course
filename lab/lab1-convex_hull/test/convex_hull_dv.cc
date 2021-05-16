@@ -8,6 +8,13 @@ int g_result[240][2];
 *注：Pack[0][0]存放点的个数，pack[1]开始存放点的坐标。
 *全局变量g_result[][]用来存放凸包上的点，即最终所要的答案。同样g_result[0][0]存放的是已找到的点的个数。
 **/
+
+// Pack[240][2] : 点集
+// 划分线的两点坐标
+// int x1 
+// int y1
+// int x2
+// int y2
 void getResult(int Pack[240][2], int x1, int y1, int x2, int y2)
 {
     int i,t,x3,y3,R,Rmax,tmax;
@@ -20,6 +27,7 @@ void getResult(int Pack[240][2], int x1, int y1, int x2, int y2)
     R = x1*y2 + x3*y1 + x2*y3 - x3*y2 - x2*y1 - x1*y3;
     Rmax = R;
     tmax = 1;
+    // 求距离直线最远的点
     for(i=2;i<=Pack[0][0];i++)
     {
         x3 = Pack[i][0];
@@ -27,17 +35,17 @@ void getResult(int Pack[240][2], int x1, int y1, int x2, int y2)
         R = x1*y2 + x3*y1 + x2*y3 - x3*y2 - x2*y1 - x1*y3;
         if(R >= 0)
         {
-            t = ++ResultPack[0][0];
+            t = ++ResultPack[0][0]; // 上包的点
             ResultPack[t][0] = x3;
             ResultPack[t][1] = y3;
         }
         if(R > Rmax)
         {
-            Rmax = R;
+            Rmax = R; // 找到了Rmax
             tmax = i;
         }
     }
-    if(Rmax <= 0)
+    if(Rmax <= 0) // 下面
     {
         for(i=1;i<ResultPack[0][0];i++)
         {
@@ -74,6 +82,9 @@ void main()
     printf("请输入所有点的坐标：\n");
     while(scanf("%d,%d",&Point[i][0],&Point[i][1]) != EOF)
         i++;
+    ////////////////////////////////////////////////////
+    ///////找到横坐标最小和最大的两个点/////////////////
+    ////////////////////////////////////////////////////
     Point[0][0] = i-1;
     x1 = Point[1][0];
     y1 = Point[1][1];
@@ -94,13 +105,14 @@ void main()
             y2 = y3;
         }
     }
+    ////////////////////////////////////////////////////
     g_result[1][0] = x1;
     g_result[1][1] = y1;
     g_result[2][0] = x2;
     g_result[2][1] = y2;
     g_result[0][0] += 2;
-    getResult(Point, x1, y1, x2, y2);
-    getResult(Point, x2, y2, x1, y1);
+    getResult(Point, x1, y1, x2, y2); // 上包
+    getResult(Point, x2, y2, x1, y1); // 下包
 
     printf("\n\n构成凸包的点有：\n");
     for(i=1;i<=g_result[0][0];i++)

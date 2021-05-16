@@ -156,8 +156,153 @@ void ConvexHullSolver::SolverBasedGrahamScan() {
     }
 }
 
+/*
+ * 线段 p1(x1, y1), p2(x2, y2)
+ * 点 p(x3, y3)
+ | x1   y1    1 | 
+ | x2   y2    1 | = x1 * y2 + x3 * y1 + x2 * y3 - x3 * y2 - x2 * y1 - x1 * y3;
+ | x3   y3    1 |
+ */
+static double Distance(const Point& p1, const Point& p2, const Point& p) {
+    double x1 = p1.GetX(), y1 = p1.GetY();
+    double x2 = p2.GetX(), y2 = p2.GetY();
+
+    double x3 = p.GetX(), y3 = p.GetY();
+    return x1 * y2 + x3 * y1 + x2 * y3 - x3 * y2 - x2 * y1 - x1 * y3;
+}
+
+static void Deal(std::vector<std::pair<double, double>>& point_set, std::vector<bool>& left_set, const Point& p1, const Point& p2, std::set<std::pair<double, double>>& ret_set) {
+    // 跳出
+    if (std::count(left_set.begin(), left_set.end(), true) < 1) return;
+    // 1. 在left_set找到距离p1-p2线段最远的
+    double max_dis = 0;
+    double  max_idx = 0;
+    for (int i = 0; i < point_set.size(); ++ i) {
+        if (left_set[i] ) {
+            double dis = Distance(p1, p2, Point (point_set[i].first, point_set[i].second));
+            dis = dis > 0 ? dis : dis * -1; //取绝对值
+            if (max_dis < dis) {
+                max_dis = dis;
+                max_idx = i;
+            }
+
+        }
+    }
+    ret_set.insert(point_set[max_idx]); // 加入凸包集合中
+    left_set[max_idx] = false; // 在剩余考虑点中取出该点
+
+    // 2. 删除在三角形内和上的点，由距离最远的几个点构成，在left_set中删除
+    Point max_dis_p (point_set[max_idx].first, point_set[max_idx].second);
+    Point p1_tmp(p1.GetX(), p1.GetY());
+    Point p2_tmp(p2.GetX(), p2.GetY());
+    Triangle tri(p1_tmp, p2_tmp, max_dis_p);
+
+    for (int i = 0; i < point_set.size(); ++ i) {
+        if (left_set[i] ) {
+            Point P(point_set[i].first, point_set[i].second);
+            // 判断点P是否在triangle中或者在某条边上
+            if (PointInTriangle(tri, P)) {
+                left_set[i] = false;
+            }
+
+        }
+    }
+
+
+    // 3. 获得L_left, L_right的考虑点
+    std::vector<bool> L_left(point_set.size(), false);
+    std::vector<bool> L_right(point_set.size(), false); 
+
+    double flag_left = Distance(p1, max_dis_p,  p2); // 判断需要保留的点的正负号
+    for (int i = 0; i < point_set.size(); ++ i) {
+        if (left_set[i]) {
+            Point p(point_set[i].first, point_set[i].second);
+            double s = Distance(p1, max_dis_p, p);
+            if (flag_left > 0) {
+                if (s < 10e-5 &&  s > -10e-5) continue;
+                if (s > 0) { // 正向
+                    L_left[i] = true;
+                } else{ // s == 0
+                    L_right[i]= true;
+
+                }
+
+            } else if (flag_left < 0) {
+                if (s < 10e-5 &&  s > -10e-5) continue;
+                if (s < 0) { // 正向
+                    L_left[i] = true;
+                } else{ // s == 0
+                    L_right[i]= true;
+
+                }
+
+            }
+
+        } 
+    }
+
+
+    // 3. 处理产生的两个子问题
+    Deal(point_set, L_left, p1, max_dis_p, ret_set);
+    Deal(point_set, L_right, p2, max_dis_p, ret_set);
+}
+
 // 基于分治思想的凸包求解算法
 void ConvexHullSolver::SolverBasedDAndQ() {
+    convex_hull_set.clear(); // 清除之前保存的值
+    /*
+    1. 以连接最大纵坐标点y_max和最小纵坐标点y_min的线段d={y_max, y_min}划分为左点集L_left和右点集L_right
+    2. Deal(L_left); Deal(L_right)
+
+    对于Deal(L_left)
+     确定距离d最远的点P
+     在三角形内的点(三角形三条边分别是a, b, d; d边是初始线段，a,b是通过加入点P构成的)，删除;
+     线段a外的点与a构成L_left的子问题
+     线段b外的点与b构成L_left的子问题
+    */
+
+    // 1. 找到最大纵坐标和最小纵坐标 
+    int y_max_idx = 0, y_min_idx = 0;
+    for (int i = 1; i < point_set.size(); ++ i) {
+        if (point_set[y_max_idx].second < point_set[i].second) y_max_idx = i;
+        if (point_set[y_min_idx].second > point_set[i].second) y_min_idx = i;
+    }
+
+    Point y_max(point_set[y_max_idx].first, point_set[y_max_idx].second);
+    Point y_min(point_set[y_min_idx].first, point_set[y_min_idx].second);
+
+    // 添加y_max, y_min到结果中
+    convex_hull_set.insert(point_set[y_max_idx]);
+    convex_hull_set.insert(point_set[y_min_idx]);
+
+    // 2. Deal(L_left); Deal(L_right);
+    std::vector<bool> L_left(point_set.size(), false); // 值为true表示在问题中需要考虑这个点
+    std::vector<bool> L_right(point_set.size(), false); // 值为true表示在问题中需要考虑这个点
+
+    // 判断点是否在同一侧，通过判断下式是否同号, 即可通过计算距离
+    /*
+     * 线段 p1(x1, y1), p2(x2, y2)
+     * 点 p(x, y)
+       | x1   y1    1 | 
+       | x2   y2    1 | = x1 * y2 + x3 * y1 + x2 * y3 - x3 * y2 - x2 * y1 - x1 * y3;
+       | x3   y3    1 |
+     */
+    for (int i = 0; i < point_set.size(); ++ i) {
+        Point p(point_set[i].first, point_set[i].second);
+        double s = Distance(y_max, y_min, p);
+        if (s < 10e-5 && s > -10e-5) continue;
+        if (s > 0) { // 正向
+            L_left[i] = true;
+        } else{ // s == 0
+            L_right[i]= true;
+
+        }
+
+    }
+
+    Deal(point_set, L_left, y_max, y_min, convex_hull_set);
+    Deal(point_set, L_right, y_max, y_min, convex_hull_set);
+
 
 }
 

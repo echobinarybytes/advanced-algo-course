@@ -20,6 +20,7 @@ public:
     }
     ~Point() {  }
 
+
 public:
     // return x value
     double GetX() const { return _x; }

@@ -7,7 +7,11 @@
 using std::string;
 
 int main() {
+#if 1 // for real
+    for (int _i = 1; _i < 20; ++ _i) {
+#else // for test
     for (int _i = 1; _i < 2; ++ _i) {
+#endif
         // generator pointer set
         int i = _i * 1000;
         string if_name = "./data/" + string("points_") + std::to_string(i) +".txt";
@@ -25,6 +29,7 @@ int main() {
         timer.Start();
         solver.SolverBasedEnum();
         timer.End();
+        std::cout << "Enum based : " << i <<  std::endl;
         timer.Show();
 
         solver.SaveConvexHullSet(solver.GetStoreFileName() + "_by_enum");
@@ -33,9 +38,19 @@ int main() {
         timer.Start();
         solver.SolverBasedGrahamScan();
         timer.End();
+        std::cout << "GrahamScan based : " << i <<  std::endl;
         timer.Show();
 
         solver.SaveConvexHullSet(solver.GetStoreFileName() + "_by_grahamscan");
+
+        // divide and conqure
+        timer.Start();
+        solver.SolverBasedDAndQ();
+        timer.End();
+        std::cout << "DAndQ based : " << i <<  std::endl;
+        timer.Show();
+
+        solver.SaveConvexHullSet(solver.GetStoreFileName() + "_by_dandq");
     }
 
 
