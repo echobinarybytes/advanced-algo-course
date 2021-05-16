@@ -52,7 +52,7 @@ void SetCoverSolver::GreedySetCover(Set& s, Sets& s_s) {
     std::vector<int>& C = result;
 
     // 3-6
-    while (U.Size() != 0) {
+    while (U.GetSet().size() != 0) {
         // 4. Greedy选择-选择能覆盖最多U元素的子集
         int idx = FindCoverMost(U, s_s, set_used);
 
@@ -81,6 +81,7 @@ void SetCoverSolver::LinearProgrammingSetCover() {
      for (auto idx : result) {
          std::cout << idx  << " ";
      }
+     std::cout << std::endl;
      
  }
 

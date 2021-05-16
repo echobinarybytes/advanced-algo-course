@@ -3,7 +3,11 @@
 #include <algorithm>
 
 int main() {
+#if 0 //检查代码运行情况
+    std::vector<int> situation = {20};
+#else //完成实验
     std::vector<int> situation = {100, 1000, 5000};
+#endif
     for (auto iter = situation.begin(); iter != situation.end(); ++ iter) {
         int i = *iter; 
         // 产生set集
